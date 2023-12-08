@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId    Int      @id @default(autoincrement())
+  role      String   @db.VarChar(65)
+  username  String   @db.VarChar(65)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products  Product[] @relation("user_products")
+  Order     Order[]
+  
+}
+
+model Product {
+  productId Int         @id @default(autoincrement())
+  name      String      @db.VarChar(100)
+  price     Decimal     @db.Decimal(10, 2)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  OrderLine OrderLine[]
+  userId    Int
+  user User @relation("user_products", fields: [userId], references: [userId], onUpdate: Cascade, onDelete: Cascade)
+}
+
+model OrderLine {
+  orderLineId Int      @id @default(autoincrement())
+  orderId     Int
+  productId   Int
+  quantity    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [orderId])
+  product Product @relation(fields: [productId], references: [productId])
+}
+
+model Order {
+  orderId     Int      @id @default(autoincrement())
+  userId      Int
+  totalAmount Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [userId])
+  orderLines OrderLine[]
+}
